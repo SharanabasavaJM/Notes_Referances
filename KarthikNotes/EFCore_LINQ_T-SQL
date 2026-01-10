@@ -1,0 +1,1033 @@
+-------------------------------------------------------------------------------------------------------------
+T-SQL
+-------------------------------------------------------------------------------------------------------------
+1. Introduction to T-SQL
+Basics of T-SQL
+Question: What is T-SQL, and how is it different from standard SQL?
+Answer: T-SQL (Transact-SQL) is Microsoft’s extension of SQL used in SQL Server. It adds procedural
+programming capabilities like variables, loops, error handling, and conditional logic. It includes
+enhancements for querying and modifying data, such as built-in functions, exception handling, and
+transaction control.
+
+2. T-SQL Data Types
+Data Type Selection
+Question: How do you choose appropriate data types for columns in T-SQL?
+Answer: You select data types based on the kind of data being stored:
+INT for integer values.
+DECIMAL or FLOAT for precise or floating-point numbers.
+VARCHAR or NVARCHAR for variable-length text.
+DATETIME for date and time. Choosing appropriate data types optimizes performance and
+minimizes storage requirements.
+
+Handling NULL Values
+Question: How does T-SQL handle NULL values, and why are they significant?
+Answer: NULL represents an unknown or missing value. In T-SQL, NULL values are not equal to any
+other value (even NULL itself). Functions like IS NULL or ISNULL() are used to handle NULL values
+in queries.
+
+3. Basic Queries and Joins
+Writing Basic Queries
+Question: How do you write a basic SELECT query in T-SQL to retrieve specific columns from a table?
+Answer: A basic SELECT query retrieves columns from a table:
+sql
+SELECT FirstName, LastName FROM Employees WHERE Department = 'HR';
+
+JOIN Types
+Copy code
+Question: What are the different types of joins in T-SQL, and how are they used?
+Answer: T-SQL supports several types of joins:
+INNER JOIN: Retrieves records with matching values in both tables.
+LEFT JOIN: Returns all records from the left table and matching records from the right table
+(or NULL if no match).
+RIGHT JOIN: Returns all records from the right table and matching records from the left table.
+FULL JOIN: Retrieves all records when there is a match in either table.
+sql Copy code
+SELECT E.FirstName, D.DepartmentName FROM Employees E LEFT JOIN Departments D ON
+E.DepartmentId = D.DepartmentId;
+
+4. T-SQL Functions
+Aggregate Functions
+Question: What are aggregate functions in T-SQL, and when would you use them?
+Answer: Aggregate functions perform calculations on a set of values and return a single result. Common
+aggregate functions include:
+COUNT(): Counts rows.
+SUM(): Sums a numeric column.
+AVG(): Averages values.
+MIN() and MAX(): Returns the minimum or maximum value.
+sql
+SELECT COUNT(*), AVG(Salary) FROM Employees WHERE Department = 'HR';
+
+Scalar Functions
+Copy code
+Question: What are scalar functions, and how are they used in T-SQL?
+Answer: Scalar functions operate on a single value and return a single value. T-SQL has built-in scalar
+functions for string manipulation, date and time operations, and mathematical calculations. Example
+functions include LEN() , GETDATE() , CONVERT() , and ABS() .
+sql
+SELECT FirstName, LEN(FirstName) AS NameLength FROM Employees;
+Copy code
+
+5. Subqueries and Common Table Expressions (CTEs)
+Subqueries
+Question: What is a subquery in T-SQL, and how is it used?
+Answer: A subquery is a query nested inside another query. It can return single or multiple values and is
+used in WHERE , FROM , or SELECT clauses. Subqueries can also be correlated or non-correlated.
+sql Copy code
+SELECT FirstName, LastName FROM Employees WHERE DepartmentId = (SELECT DepartmentId
+FROM Departments WHERE DepartmentName = 'HR');
+
+Common Table Expressions (CTEs)
+Question: What is a CTE, and how does it differ from a subquery?
+Answer: A CTE is a temporary result set defined within a WITH clause, used for simplifying complex
+queries. CTEs can reference themselves for recursive queries and improve readability over subqueries.
+Copy code
+sql
+WITH EmployeeCTE AS ( SELECT FirstName, LastName, ManagerId FROM Employees WHERE
+ManagerId IS NOT NULL ) SELECT * FROM EmployeeCTE;
+
+6. T-SQL Control of Flow
+IF...ELSE
+Question: How do you use the IF...ELSE construct in T-SQL?
+Answer: IF...ELSE is used for conditional execution of T-SQL statements. Based on the result of the
+condition, specific code is executed.
+sql Copy code
+IF EXISTS (SELECT 1 FROM Employees WHERE Salary > 100000) PRINT 'High Salary
+Detected'; ELSE PRINT 'No High Salary Found';
+
+WHILE Loop
+Question: How do you create a loop in T-SQL using WHILE ?
+Answer: WHILE is used to repeatedly execute a block of T-SQL statements as long as a condition
+remains TRUE .
+sql Copy code
+DECLARE @Counter INT = 1; WHILE @Counter <= 10 BEGIN PRINT @Counter; SET @Counter =
+@Counter + 1; END;
+
+7. Error Handling in T-SQL
+TRY...CATCH
+Question: How do you handle errors in T-SQL using TRY...CATCH ?
+Answer: TRY...CATCH is used to handle errors during the execution of T-SQL code. If an error occurs in
+the TRY block, control is passed to the CATCH block.
+sql Copy code
+BEGIN TRY UPDATE Employees SET Salary = Salary + 1000 WHERE EmployeeId = 1; END TRY
+BEGIN CATCH PRINT 'Error Occurred: ' + ERROR_MESSAGE(); END CATCH;
+
+THROW vs RAISERROR
+Question: What is the difference between THROW and RAISERROR in T-SQL?
+Answer:
+RAISERROR: Used for backward compatibility, allows custom error messages, severity levels, and
+error numbers.
+THROW: Introduced in SQL Server 2012, simpler syntax, and rethrows the original error without
+changing the error number or message.
+sql Copy code
+THROW 50001, 'Custom error message', 1;
+
+8. Transactions in T-SQL
+BEGIN TRANSACTION, COMMIT, and ROLLBACK
+Question: How do you control transactions in T-SQL?
+Answer: Transactions are controlled using BEGIN TRANSACTION , COMMIT , and ROLLBACK . BEGIN
+TRANSACTION marks the start of a transaction, COMMIT saves the changes, and ROLLBACK undoes the
+changes if an error occurs.
+sql Copy code
+BEGIN TRANSACTION; UPDATE Employees SET Salary = 50000 WHERE EmployeeId = 10; IF
+@@ERROR <> 0 ROLLBACK; ELSE COMMIT;
+
+Savepoints
+Question: What are savepoints in T-SQL, and how are they used?
+Answer: Savepoints allow you to create intermediate points within a transaction. If an error occurs, you
+can roll back to a savepoint without undoing the entire transaction.
+sql Copy code
+BEGIN TRANSACTION; SAVE TRANSACTION SavePoint1; -- Perform some operation IF
+@@ERROR <> 0 ROLLBACK TRANSACTION SavePoint1; -- Rollback to savepoint COMMIT;
+
+9. Temporary Tables and Table Variables
+Temporary Tables
+Question: What is a temporary table in T-SQL, and how is it created?
+Answer: Temporary tables are used to store intermediate results. They are created in
+the tempdb database and are automatically dropped when the session ends. Local temporary tables begin
+with a # .
+sql Copy code
+CREATE TABLE #TempEmployees (EmployeeId INT, Name NVARCHAR(100)); INSERT INTO
+#TempEmployees VALUES (1, 'John Doe');
+
+Table Variables
+Question: How do table variables differ from temporary tables in T-SQL?
+Answer: Table variables are similar to temporary tables but are scoped to the batch, function, or stored
+procedure. They are declared using DECLARE , and their lifespan is limited to the current session.
+sql Copy code
+DECLARE @TempTable TABLE (EmployeeId INT, Name NVARCHAR(100)); INSERT INTO
+@TempTable VALUES (1, 'John Doe');
+
+10. Window Functions in T-SQL
+ROW_NUMBER()
+ROW_NUMBER()
+Question: How does the ROW_NUMBER() function work in T-SQL?
+Answer: ROW_NUMBER() assigns a unique, sequential integer to rows within a result set, starting
+from 1 for the first row. It requires an OVER() clause, which defines the partitioning and
+ordering of the rows.
+sql Copy code
+SELECT FirstName, LastName, ROW_NUMBER() OVER (ORDER BY LastName) AS RowNum FROM
+Employees;
+
+RANK() vs DENSE_RANK()
+Question: What is the difference between RANK() and DENSE_RANK() in T-SQL?
+Answer:
+RANK() : Assigns a rank to rows, with gaps in rank values when there are ties.
+DENSE_RANK() : Assigns ranks without gaps, meaning if two rows tie, the next row gets the
+immediate next rank.
+sql Copy code
+SELECT FirstName, LastName, RANK() OVER (ORDER BY Salary DESC) AS Rank FROM
+Employees; SELECT FirstName, LastName, DENSE_RANK() OVER (ORDER BY Salary DESC) AS
+DenseRank FROM Employees;
+
+NTILE()
+Question: How does the NTILE() function work in T-SQL?
+Answer: NTILE() divides rows into a specified number of groups and assigns a group number
+to each row. It’s useful for dividing data into quartiles, percentiles, or any other equal-sized
+partitions.
+sql Copy code
+SELECT FirstName, LastName, NTILE(4) OVER (ORDER BY Salary DESC) AS Quartile FROM
+Employees;
+
+11. Pivoting and Unpivoting Data
+PIVOT
+Question: How do you use the PIVOT operator in T-SQL?
+Answer: PIVOT is used to transform rows into columns. It aggregates data and is helpful for
+summarizing data in reports.
+sql Copy code
+SELECT Department, [2019], [2020], [2021] FROM ( SELECT Department, Year, Revenue
+FROM DepartmentRevenue ) AS SourceTable PIVOT ( SUM(Revenue) FOR Year IN ([2019],
+[2020], [2021]) ) AS PivotTable;
+
+UNPIVOT
+Question: How do you use the UNPIVOT operator in T-SQL?
+Answer: UNPIVOT converts columns back into rows, which is the reverse of PIVOT . It can be
+used to normalize denormalized data.
+sql Copy code
+SELECT Department, Year, Revenue FROM DepartmentRevenue UNPIVOT ( Revenue FOR Year
+IN ([2019], [2020], [2021]) ) AS UnpivotTable;
+
+12. Set Operations
+UNION vs UNION ALL
+Question: What is the difference between UNION and UNION ALL in T-SQL?
+Answer:
+UNION : Combines results of two or more queries and removes duplicates.
+UNION ALL : Combines results of two or more queries without removing duplicates (faster
+than UNION because no duplicate checks are performed).
+sql Copy code
+SELECT FirstName, LastName FROM Employees_A UNION SELECT FirstName, LastName FROM
+Employees_B; SELECT FirstName, LastName FROM Employees_A UNION ALL SELECT
+FirstName, LastName FROM Employees_B;
+
+EXCEPT and INTERSECT
+Question: How do EXCEPT and INTERSECT work in T-SQL?
+Answer:
+EXCEPT : Returns the rows from the first query that are not in the second query.
+INTERSECT : Returns the rows common to both queries.
+sql Copy code
+SELECT FirstName, LastName FROM Employees_A EXCEPT SELECT FirstName, LastName FROM
+Employees_B; SELECT FirstName, LastName FROM Employees_A INTERSECT SELECT
+FirstName, LastName FROM Employees_B;
+
+13. Advanced Querying Techniques
+Recursive CTEs
+Question: How do you implement a recursive CTE in T-SQL, and what are the use cases?
+Answer: Recursive CTEs are used to perform hierarchical queries, such as retrieving data from a
+tree or parent-child structure. A recursive CTE consists of two parts: the anchor member and the
+recursive member.
+sql Copy code
+WITH EmployeeHierarchy AS ( SELECT EmployeeId, ManagerId, FirstName, LastName FROM
+Employees WHERE ManagerId IS NULL -- Anchor member UNION ALL SELECT E.EmployeeId,
+E.ManagerId, E.FirstName, E.LastName FROM Employees E INNER JOIN EmployeeHierarchy
+EH ON E.ManagerId = EH.EmployeeId -- Recursive member ) SELECT * FROM
+EmployeeHierarchy;
+
+APPLY (CROSS APPLY and OUTER APPLY)
+Question: What are CROSS APPLY and OUTER APPLY , and how do they work in T-SQL?
+Answer:
+CROSS APPLY : Works like an INNER JOIN , applying a table-valued function to each row of
+the outer table.
+OUTER APPLY : Works like a LEFT JOIN , returning all rows from the outer table and
+matching rows from the function.
+sql Copy code
+SELECT E.EmployeeId, E.FirstName, P.ProjectName FROM Employees E CROSS APPLY (
+SELECT TOP 1 ProjectName FROM Projects P WHERE P.EmployeeId = E.EmployeeId ORDER BY
+StartDate DESC ) AS RecentProject;
+
+14. Data Integrity and Constraints
+Primary Key and Foreign Key Constraints
+Question: What is the difference between primary key and foreign key constraints in T-SQL?
+Answer:
+Primary Key: Uniquely identifies each row in a table. Each table can have only one primary
+key.
+Foreign Key: Establishes a relationship between two tables by linking the foreign key in one
+table to the primary key in another table, enforcing referential integrity.
+sql Copy code
+ALTER TABLE Employees ADD CONSTRAINT PK_EmployeeId PRIMARY KEY (EmployeeId); ALTER
+TABLE Projects ADD CONSTRAINT FK_EmployeeId FOREIGN KEY (EmployeeId) REFERENCES
+Employees(EmployeeId);
+
+UNIQUE and CHECK Constraints
+Question: How do UNIQUE and CHECK constraints work in T-SQL?
+Answer:
+UNIQUE Constraint: Ensures that all values in a column are unique, but unlike primary keys,
+a table can have multiple unique constraints.
+CHECK Constraint: Enforces a condition that must be true for each row in a table.
+Copy code
+sql
+ALTER TABLE Employees ADD CONSTRAINT UQ_Email UNIQUE (Email); ALTER TABLE Employees
+ADD CONSTRAINT CK_Salary CHECK (Salary > 0);
+
+15. T-SQL Best Practices
+Optimizing Query Performance
+Question: What are some best practices for optimizing query performance in T-SQL?
+Answer: Some best practices include:
+Use proper indexing: Ensure that frequently queried columns are indexed.
+Avoid SELECT * : Only select the columns you need.
+Use EXISTS instead of IN : In certain cases, EXISTS performs better than IN .
+Minimize joins: Use joins only when necessary, and avoid joining on columns with no
+indexes.
+Monitor query performance: Use execution plans and query store to analyze and optimize
+queries.
+
+Using Transactions Effectively
+Question: How can you use transactions effectively in T-SQL?
+Answer: Best practices for using transactions include:
+Keep transactions short: Minimize the number of operations inside a transaction to avoid
+blocking other queries.
+Handle errors: Use TRY...CATCH to handle errors and ensure that transactions are either
+committed or rolled back properly.
+Use savepoints: Create savepoints for large transactions to allow partial rollbacks if
+necessary.
+sql Copy code
+BEGIN TRANSACTION; -- Operations IF @@ERROR <> 0 ROLLBACK TRANSACTION; ELSE COMMIT
+TRANSACTION;
+
+-------------------------------------------------------------------------------------------------------------
+EF Core
+-------------------------------------------------------------------------------------------------------------
+1. Introduction to Entity Framework Core (EF Core)
+Basics of EF Core
+Question: What is Entity Framework Core, and how does it differ from Entity Framework 6?
+Answer: EF Core is a lightweight, cross-platform, open-source version of Entity Framework. It supports
+more modern features and performance improvements compared to EF 6. EF Core is also modular,
+supports LINQ queries, and is designed for use in .NET Core and .NET applications, whereas EF 6 only
+runs on the .NET Framework.
+
+Supported Databases
+Question: What databases are supported by Entity Framework Core?
+Answer: EF Core supports SQL Server, SQLite, PostgreSQL, MySQL, Cosmos DB, and other relational
+databases through third-party providers. It also supports NoSQL databases like Azure Cosmos DB.
+
+2. Code-First Approach in EF Core
+Code-First Migrations
+Question: How do you enable migrations in Entity Framework Core Code-First?
+Answer: Migrations in Code-First can be enabled using the Add-Migration and Update
+Database commands in the package manager console. Migrations track changes to your model and apply
+them to the database schema.
+bash
+Add-Migration InitialCreate Update-Database
+
+Fluent API vs Data Annotations
+Copy code
+Question: What is the difference between Fluent API and Data Annotations in EF Core?
+Answer: Data Annotations are attributes applied to entity properties and classes to define how they map
+to the database. Fluent API provides more flexibility and can define complex configurations that Data
+Annotations cannot, such as composite keys or many-to-many relationships, and is used in
+the OnModelCreating method in the DbContext .
+
+3. DbContext and DbSet in EF Core
+DbContext
+Question: What is DbContext , and how does it work in EF Core?
+Answer: DbContext is the primary class in EF Core that interacts with the database. It represents a
+session with the database and is used for querying and saving data. DbContext manages entities and
+tracks changes to them for persistence in the database.
+
+DbSet
+Question: What is DbSet in Entity Framework Core?
+Answer: DbSet represents a collection of entities in EF Core, mapping to a table in the database. You
+use it to query, add, update, and delete entities from the database.
+Copy code
+csharp
+public DbSet<Customer> Customers { get; set; }
+
+4. LINQ Queries in EF Core
+Querying with LINQ
+Question: How do you write LINQ queries in EF Core?
+Answer: EF Core allows you to write queries using LINQ (Language Integrated Query). These LINQ
+expressions are translated into SQL at runtime and executed against the database.
+csharp
+var customers = context.Customers.Where(c => c.Age > 30).ToList();
+
+Query Syntax vs Method Syntax
+Copy code
+Question: What is the difference between query syntax and method syntax in LINQ?
+Answer: Query syntax is similar to SQL-like syntax (e.g., from c in context.Customers select c ).
+Method syntax uses method calls like Where() , Select() , and OrderBy() for querying data
+(e.g., context.Customers.Where(c => c.Age > 30) ).
+
+5. Loading Related Data
+Eager Loading
+Question: What is eager loading in EF Core, and how is it done?
+Answer: Eager loading loads related data as part of the initial query using the Include() method,
+reducing the number of separate database queries but increasing the size of the query.
+csharp
+var orders = context.Orders.Include(o => o.Customer).ToList();
+
+Lazy Loading
+Copy code
+Question: How does lazy loading work in EF Core?
+Answer: Lazy loading defers the loading of related data until it is accessed. This requires navigation
+properties to be virtual and EF Core to have lazy loading proxies enabled. When a related entity is
+accessed, a separate query is made to fetch the data.
+
+Explicit Loading
+Question: How is explicit loading implemented in EF Core?
+Answer: Explicit loading is used when you want to manually load related data after the initial query,
+using methods like Load() or Collection.Load() .
+csharp
+context.Entry(order).Reference(o => o.Customer).Load();
+Copy code
+
+6. Entity Relationships in EF Core
+One-to-Many Relationship
+Question: How do you configure a one-to-many relationship in EF Core?
+Answer: A one-to-many relationship can be configured using navigation properties and
+the HasMany() and WithOne() methods in the Fluent API or using Data Annotations
+like [ForeignKey] .
+csharp Copy code
+modelBuilder.Entity<Customer>() .HasMany(c => c.Orders) .WithOne(o => o.Customer);
+
+Many-to-Many Relationship
+Question: How do you configure a many-to-many relationship in EF Core 5.0 and later?
+Answer: Starting with EF Core 5.0, you can configure many-to-many relationships without an explicit
+join table by using HasMany() and WithMany() . EF Core creates a join table automatically.
+csharp Copy code
+modelBuilder.Entity<Student>() .HasMany(s => s.Courses) .WithMany(c => c.Students);
+
+7. Concurrency Control
+Optimistic Concurrency
+Question: How is optimistic concurrency handled in EF Core?
+Answer: EF Core uses concurrency tokens like RowVersion to detect when multiple users attempt to
+update the same record at the same time. If a conflict is detected, EF Core throws
+a DbUpdateConcurrencyException , which can be handled in code.
+csharp
+[Timestamp] public byte[] RowVersion { get; set; }
+
+Handling Concurrency Conflicts
+Copy code
+Question: How do you handle concurrency conflicts in EF Core?
+Answer: You can handle concurrency conflicts by catching DbUpdateConcurrencyException and either
+retrying the operation, merging changes, or refreshing the data from the database.
+csharp Copy code
+try { context.SaveChanges(); } catch (DbUpdateConcurrencyException) { // Handle
+concurrency conflict }
+
+8. Transactions in EF Core
+Managing Transactions
+Question: How do you manage transactions in EF Core?
+Answer: EF Core automatically manages transactions when SaveChanges() is called. However, you
+can manually manage transactions using BeginTransaction() , Commit() , and Rollback() to ensure
+atomicity in complex operations.
+Copy code
+csharp
+using var transaction = context.Database.BeginTransaction(); try {
+context.SaveChanges(); transaction.Commit(); } catch { transaction.Rollback(); }
+
+SaveChanges Behavior
+Question: How does SaveChanges() work in EF Core with transactions?
+Answer: When SaveChanges() is called, EF Core wraps the changes in a transaction and executes them
+as a single atomic unit. If any part of the transaction fails, the entire transaction is rolled back.
+
+9. Migrations in EF Core
+Applying Migrations
+Question: How do you apply migrations in EF Core?
+Answer: Migrations track model changes and apply them to the database schema. They are applied using
+the Add-Migration and Update-Database commands. Add-Migration generates migration files,
+and Update-Database applies them to the database.
+bash
+Add-Migration AddNewColumn Update-Database
+
+Rolling Back a Migration
+Copy code
+Question: How do you roll back a migration in EF Core?
+Answer: You can roll back a migration by specifying a target migration using the Update
+Database command or by reverting all migrations by specifying 0 .
+bash
+Update-Database -Migration InitialCreate
+Copy code
+
+10. Performance Optimization in EF Core
+Using AsNoTracking
+Question: What is AsNoTracking() in EF Core, and when should it be used?
+Answer: AsNoTracking() is used for read-only queries to disable change tracking, which reduces the
+overhead of managing entity state. This improves performance when you are only retrieving data and not
+updating it.
+csharp
+var customers = context.Customers.AsNoTracking().ToList();
+
+Batch Operations
+Copy code
+Question: How do batch operations improve performance in EF Core?
+Answer: EF Core 6.0 introduced batch updates and deletes, allowing multiple rows to be updated or
+deleted with a single SQL command instead of fetching the entities first. This reduces the number of
+database round-trips.
+Copy code
+csharp
+context.Customers.Where(c => c.IsInactive).BatchDelete();
+
+11. Shadow Properties and Global Query Filters
+Shadow Properties
+Shadow Properties
+Question: What are shadow properties in EF Core, and how do you configure them?
+Answer: Shadow properties are properties that exist in the database but are not defined in the
+entity class. They are typically used for metadata like timestamps. Shadow properties are
+configured using the Fluent API in the OnModelCreating method.
+csharp
+modelBuilder.Entity<Customer>().Property<DateTime>("CreatedOn");
+
+Accessing Shadow Properties
+Copy code
+Question: How do you access shadow properties in EF Core?
+Answer: Shadow properties can be accessed by using Entry() and specifying the property
+name as a string. This is useful for both reading and updating shadow properties.
+csharp Copy code
+var createdOn = context.Entry(customer).Property("CreatedOn").CurrentValue;
+
+12. Global Query Filters
+Defining Global Query Filters
+Question: What are global query filters in EF Core, and how are they implemented?
+Answer: Global query filters allow you to apply a filter to all queries for a particular entity type,
+ensuring that only certain entities are retrieved. This is useful for implementing soft deletes or
+multi-tenancy. Global query filters are defined in OnModelCreating .
+Copy code
+csharp
+modelBuilder.Entity<Customer>().HasQueryFilter(c => !c.IsDeleted);
+
+Overriding Global Query Filters
+Question: How do you override or disable a global query filter in EF Core?
+Answer: You can override a global query filter by using the IgnoreQueryFilters() method in a
+LINQ query. This ensures that the filter is bypassed when retrieving entities.
+csharp
+var allCustomers = context.Customers.IgnoreQueryFilters().ToList();
+Copy code
+
+13. Entity Lifecycle Events and Change Tracking
+Tracking Entity Changes
+Question: How does change tracking work in EF Core, and what is the role of
+the ChangeTracker ?
+Answer: EF Core automatically tracks changes to entity objects by default.
+The ChangeTracker keeps track of the state (Added, Modified, Deleted, Unchanged) of each
+entity. When SaveChanges() is called, EF Core generates the appropriate SQL commands based
+on these tracked changes.
+
+Detecting Changes Manually
+Question: How do you manually detect changes in EF Core?
+Answer: You can use the ChangeTracker.DetectChanges() method to manually detect changes
+to entities if automatic detection is disabled or if you need more control over when changes are
+detected.
+csharp
+context.ChangeTracker.DetectChanges();
+Copy code
+
+14. Keyless Entities and Query Types
+Keyless Entities
+Question: What are keyless entities in EF Core, and when would you use them?
+Answer: Keyless entities (formerly known as query types) are used to map database queries or
+views that don’t have a primary key. They are typically used for read-only data or complex
+queries that don’t fit into the standard entity model.
+csharp Copy code
+public class ProductReport { public string ProductName { get; set; } public int
+QuantitySold { get; set; } } modelBuilder.Entity<ProductReport>().HasNoKey();
+
+Using Keyless Entities in Queries
+Question: How do you use keyless entities in a query in EF Core?
+Answer: You can map keyless entities to SQL views or complex queries
+using FromSqlRaw() or FromSqlInterpolated() . These queries are often used for reporting
+purposes.
+csharp
+var report = context.Set<ProductReport>().FromSqlRaw("SELECT * FROM
+ProductReportView").ToList();
+Copy code
+
+15. Performance Tuning in EF Core
+No-Tracking Queries
+Question: What is the benefit of using no-tracking queries in EF Core, and when should you use
+them?
+Answer: No-tracking queries ( AsNoTracking() ) improve performance for read-only data by
+disabling change tracking. This reduces memory usage and the overhead associated with
+tracking entity state. It should be used when you don’t need to update the queried entities.
+csharp
+var customers = context.Customers.AsNoTracking().ToList();
+
+Compiled Queries
+Copy code
+Question: What are compiled queries in EF Core, and how do they improve performance?
+Answer: Compiled queries are precompiled versions of LINQ queries that improve performance
+by avoiding the cost of compiling the query expression tree on each execution. Compiled
+queries are useful for frequently executed queries.
+csharp Copy code
+var query = EF.CompileQuery((MyContext ctx, int id) => ctx.Customers.Where(c =>
+c.Id == id).FirstOrDefault()); var customer = query(context, 1);
+
+16. Migration Strategies
+Applying Migrations
+Question: How do you apply migrations in EF Core?
+Answer: Migrations can be applied using the Add-Migration and Update-Database commands
+in the Package Manager Console or the CLI. This generates migration files and updates the
+database schema to match the current model.
+bash
+Add-Migration InitialCreate Update-Database
+
+Customizing Migrations
+Copy code
+Question: How do you customize migrations in EF Core?
+Answer: After generating a migration, you can customize the migration by editing
+the Up() and Down() methods in the generated migration file. This allows you to add custom
+SQL or logic for schema changes.
+
+17. Handling Exceptions in EF Core
+Common EF Core Exceptions
+Question: What are some common exceptions in Entity Framework Core, and how do you
+handle them?
+Answer: Common exceptions in EF Core include:
+DbUpdateException: Thrown when an error occurs while updating the database.
+DbUpdateConcurrencyException: Thrown when a concurrency conflict occurs.
+DbEntityValidationException: Thrown when entity validation fails. These exceptions can be
+caught using try-catch blocks, and specific handling can be implemented based on the
+exception type.
+csharp Copy code
+try { context.SaveChanges(); } catch (DbUpdateException ex) { // Handle update
+error }
+
+Handling Concurrency Exceptions
+Question: How do you handle concurrency exceptions in EF Core?
+Answer: Concurrency exceptions ( DbUpdateConcurrencyException ) are handled by either
+reloading the data from the database, retrying the operation, or merging the client’s changes
+with the database’s version.
+csharp Copy code
+try { context.SaveChanges(); } catch (DbUpdateConcurrencyException ex) { // Handle
+concurrency conflict }
+
+18. Working with Stored Procedures and Raw SQL
+Calling Stored Procedures
+Question: How do you call stored procedures in Entity Framework Core?
+Answer: Stored procedures can be called using
+the FromSqlRaw() or ExecuteSqlRaw() methods in EF Core. You can either map the result to an
+entity or execute a procedure that doesn’t return data.
+csharp Copy code
+var customers = context.Customers.FromSqlRaw("EXEC GetAllCustomers").ToList();
+
+Executing Raw SQL
+Question: How do you execute raw SQL in EF Core?
+Answer: You can execute raw SQL queries using the FromSqlRaw() method for queries
+or ExecuteSqlRaw() for commands that do not return data.
+csharp Copy code
+var products = context.Products.FromSqlRaw("SELECT * FROM Products").ToList();
+
+19. NoSQL and EF Core
+Working with NoSQL Databases
+Question: How does Entity Framework Core support NoSQL databases like Cosmos DB?
+Answer: EF Core has built-in support for Azure Cosmos DB, allowing you to work with NoSQL
+data using the same LINQ queries and models as relational databases. You configure EF Core to
+use Cosmos DB in the OnConfiguring method or during dependency injection.
+csharp Copy code
+optionsBuilder.UseCosmos("<account-endpoint>", "<auth-key>", "<database-name>");
+
+Mapping Entities to Cosmos DB
+Question: How do you map entities to Cosmos DB in EF Core?
+Answer: You map entities to Cosmos DB by specifying the container (table equivalent) and
+partition key using the Fluent API in the OnModelCreating method.
+csharp Copy code
+modelBuilder.Entity<Customer>().ToContainer("Customers").HasPartitionKey(c =>
+c.CustomerId);
+
+20. Designing for Soft Deletes
+Implementing Soft Deletes
+Question: How do you implement soft deletes in Entity Framework Core?
+Answer: Soft deletes can be implemented by adding an IsDeleted property to your entity and
+applying a global query filter to exclude deleted entities from queries. Instead of physically
+deleting records, the IsDeleted flag is set to true.
+csharp
+modelBuilder.Entity<Customer>().HasQueryFilter(c => !c.IsDeleted);
+Copy code
+
+-------------------------------------------------------------------------------------------------------------
+LINQ
+-------------------------------------------------------------------------------------------------------------
+1   using System;
+2   using System.Collections.Generic;
+3   using System.Linq;
+4   using System.Text;
+5   using System.Collections;
+6   using System.Diagnostics;
+7   
+8   namespace Capgemini.LINQDEMOS.LINQOperators
+9   {
+10       /// <summary>
+11       /// Represents a Department with an ID and Name.
+12       /// </summary>
+13       class Department
+14       {
+15           public int DeptID { get; set; }
+16           public string DepartmentName { get; set; }
+17       }
+18   
+19       /// <summary>
+20       /// Represents an Employee with an ID, Name, and Department ID.
+21       /// </summary>
+22       class Employee
+23       {
+24           public int ID { get; set; }
+25           public string Name { get; set; }
+26           public int DeptID { get; set; }
+27       }
+28   
+29       /// <summary>
+30       /// Represents an Employee along with their Department Name.
+31       /// </summary>
+32       class DeptEmployee
+33       {
+34           public int ID { get; set; }
+35           public string Name { get; set; }
+36           public string DepartmentName { get; set; }
+37       }
+38   
+39       /// <summary>
+40       /// Demonstrates various LINQ operators.
+41       /// </summary>
+42       class Program
+43       {
+44           static void Main(string[] args)
+45           {
+46   
+47               WhereOperator();           // Filters elements based on a condition
+48               OfTypeOperator();          // Filters elements based on type
+49               OrderByOperator();         // Sorts elements in ascending or descending order
+50               SetOperators();            // Demonstrates set operations like Intersect, 
+Union, Except
+51               Quantifiers();             // Checks for conditions using All, Any, Contains
+52               ProjectionOperators();     // Transforms elements using Select and SelectMany
+53               PartitioningOperators();   // Divides data using Skip, Take, SkipWhile, 
+TakeWhile
+54               JoinOperator();            // Performs an inner join between two collections
+55               GroupingOperators();       // Groups elements based on a common key
+56               GenerationOperators();     // Generates a sequence using Range and Repeat
+57               EqualityOperators();       // Compares sequences using SequenceEqual
+58               ElementOperator();         // Retrieves specific elements using First, Last, 
+ElementAt, Single
+59               ConcatenationOperator();   // Merges collections using Concat and Union
+60               AggregationOperator();     // Performs calculations using Sum, Min, Max, 
+Average, Count
+61           }
+62   
+63           /// <summary>
+64           /// The Where operator filters elements in a sequence based on a condition.
+65           /// </summary>
+66           private static void WhereOperator()
+67           {
+68               string[] cities = { "Chennai", "Pune", "Mumbai", "Bangalore", "Hyderabad" };
+69   
+70               // Filters cities whose names have more than 6 characters
+71               var query = cities.Where(city => city.Length > 6);
+72   
+73               foreach (var city in query)
+74               {
+75                   Console.WriteLine(city);
+76               }
+77           }
+78   
+79           /// <summary>
+80           /// The OfType operator filters elements in a collection based on their type.
+81           /// </summary>
+82           private static void OfTypeOperator()
+83           {
+84               ArrayList list = new ArrayList { "CCA-MS", 2025, "Capgemini", new object() };
+85   
+86               // Filters only string elements from the mixed-type list
+87               var query = list.OfType<string>();
+88   
+89               foreach (var item in query)
+90               {
+91                   Console.WriteLine(item);
+92               }
+93           }
+94   
+95           /// <summary>
+96           /// The OrderBy operator sorts elements in ascending order, 
+97           /// and OrderByDescending sorts them in descending order.
+98           /// </summary>
+99           private static void OrderByOperator()
+100           {
+101               string[] names = { "Karthik", "Deba", "Swami", "Kishan", "Subathra", 
+"Manvinder" };
+102   
+103               // Sorts names alphabetically (ascending order)
+104               var query = names.OrderBy(name => name);
+105   
+106               foreach (var name in query)
+107               {
+108                   Console.WriteLine(name);
+109               }
+110           }
+111   
+112           /// <summary>
+113           /// Set operators - Intersect, Union, and Except
+114           /// Intersect: Returns common elements between two sequences.
+115           /// Union: Returns all unique elements from both sequences.
+116           /// Except: Returns elements from the first sequence that are not in the second 
+sequence.
+117           /// </summary>
+118           private static void SetOperators()
+119           {
+120               int[] twos = { 2, 4, 6, 8, 10 };
+121               int[] threes = { 3, 6, 9, 12, 15 };
+122   
+123               Console.WriteLine("Intersection (Common Elements):");
+124               foreach (var item in twos.Intersect(threes))
+125                   Console.WriteLine(item);
+126   
+127               Console.WriteLine("Difference (Elements in 'twos' but not in 'threes'):");
+128               foreach (var item in twos.Except(threes))
+129                   Console.WriteLine(item);
+130   
+131               Console.WriteLine("Union (All unique elements):");
+132               foreach (var item in twos.Union(threes))
+133                   Console.WriteLine(item);
+134           }
+135   
+136           /// <summary>
+137           /// Quantifier Operators:
+138           /// - All: Checks if all elements satisfy a condition.
+139           /// - Any: Checks if at least one element satisfies a condition.
+140           /// - Contains: Checks if a specific element exists.
+141           /// </summary>
+142           private static void Quantifiers()
+143           {
+144               int[] numbers = { 2, 4, 6, 8, 10 };
+145   
+146               Console.WriteLine("All are even numbers? " + numbers.All(i => i % 2 == 0));
+147               Console.WriteLine("Any multiple of 3? " + numbers.Any(i => i % 3 == 0));
+148               Console.WriteLine("Contains number 7? " + numbers.Contains(7));
+149           }
+150   
+151           /// <summary>
+152           /// Projection Operators - Select and SelectMany:
+153           /// - Select: Projects each element into a new form.
+154           /// - SelectMany: Flattens nested collections into a single sequence.
+155           /// </summary>
+156           private static void ProjectionOperators()
+157           {
+158               string[] designPrinciples =
+159               {
+160                   "Abstractions should not depend on details. Details should depend on 
+abstractions",
+161                   "Classes should be open for extension but closed for modifications"
+162               };
+163   
+164               // Select operator: Splits each sentence into words
+165               var query = designPrinciples.Select(s => s.Split(' ')).Distinct();
+166   
+167               foreach (var item in query)
+168               {
+169                   foreach (var element in item)
+170                   {
+171                       Console.WriteLine(element);
+172                   }
+173               }
+174   
+175               // SelectMany alternative: Flattens the structure into a single collection
+176               // var query = designPrinciples.SelectMany(s => s.Split(' ')).Distinct();
+177           }
+178   
+179           /// <summary>
+180           /// Partitioning Operators:
+181           /// - Skip: Skips a specified number of elements.
+182           /// - Take: Takes a specified number of elements.
+183           /// - SkipWhile: Skips elements while a condition is true.
+184           /// - TakeWhile: Takes elements while a condition is true.
+185           /// </summary>
+186           private static void PartitioningOperators()
+187           {
+188               int[] numbers = { 1, 3, 5, 7, 9 };
+189   
+190               // Skip the first two elements, then take the next two
+191               var query = numbers.Skip(2).Take(2);
+192   
+193               foreach (var number in query)
+194               {
+195                   Console.WriteLine(number);
+196               }
+197           }
+198   
+199   
+200   /// <summary>
+201           /// The Join operator performs an inner join between two collections.
+202           /// </summary>
+203           private static void JoinOperator()
+204           {
+205               var employees = new List<Employee>
+206               {
+207                   new Employee { ID = 1, Name = "Karthik", DeptID = 1 },
+208                   new Employee { ID = 2, Name = "Ganesh", DeptID = 1 },
+209                   new Employee { ID = 3, Name = "Abishek", DeptID = 2 }
+210               };
+211   
+212               var departments = new List<Department>
+213               {
+214                   new Department { DeptID = 1, DepartmentName = "Training" },
+215                   new Department { DeptID = 2, DepartmentName = "Admin" },
+216                   new Department { DeptID = 3, DepartmentName = "HR" }
+217               };
+218   
+219               // Inner join between employees and departments based on DeptID
+220               var query = departments.Join(
+221                   employees,
+222                   department => department.DeptID,
+223                   employee => employee.DeptID,
+224                   (department, employee) => new DeptEmployee
+225                   {
+226                       ID = employee.ID,
+227                       Name = employee.Name,
+228                       DepartmentName = department.DepartmentName
+229                   });
+230   
+231               Console.WriteLine("Join Operator (Employee - Department Mapping):");
+232               foreach (var item in query)
+233               {
+234                   Console.WriteLine($"{item.ID} {item.Name} {item.DepartmentName}");
+235               }
+236           }
+237   
+238           /// <summary>
+239           /// The GroupBy operator groups elements based on a common key.
+240           /// </summary>
+241           private static void GroupingOperators()
+242           {
+243               int[] numbers = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+244   
+245               // Group numbers based on even or odd
+246               var query = numbers.GroupBy(i => i % 2 == 0 ? "Even" : "Odd");
+247   
+248               Console.WriteLine("\nGrouping Operator (Even & Odd Numbers):");
+249               foreach (var group in query)
+250               {
+251                   Console.WriteLine($"Group: {group.Key}");
+252                   foreach (var number in group)
+253                   {
+254                       Console.WriteLine(number);
+255                   }
+256               }
+257           }
+258   
+259           /// <summary>
+260           /// The Range and Repeat operators generate sequences of numbers or repeated 
+elements.
+261           /// </summary>
+262           private static void GenerationOperators()
+263           {
+264               Console.WriteLine("\nGeneration Operators:");
+265   
+266               // Generate a sequence of numbers from 1 to 10
+267               var numbers = Enumerable.Range(1, 10);
+268               Console.WriteLine("Range:");
+269               foreach (var number in numbers)
+270               {
+271                   Console.WriteLine(number);
+272               }
+273   
+274               // Generate a repeated instance of an employee 5 times
+275               var repeatedEmployees = Enumerable.Repeat(new Employee { ID = 101, Name = 
+"John" }, 5);
+276               Console.WriteLine("\nRepeat:");
+277               foreach (var employee in repeatedEmployees)
+278               {
+279                   Console.WriteLine($"ID = {employee.ID}, Name = {employee.Name}");
+280               }
+281           }
+282   
+283           /// <summary>
+284           /// The SequenceEqual operator compares two sequences for equality.
+285           /// </summary>
+286           private static void EqualityOperators()
+287           {
+288               int[] array1 = { 1, 2, 3, 4, 5 };
+289               int[] array2 = { 1, 2, 3, 4, 5 };
+290               int[] array3 = { 1, 2, 3, 4, 6 };
+291   
+292               Console.WriteLine("\nEquality Operator:");
+293               Console.WriteLine("Array1 and Array2 are equal? " + 
+array1.SequenceEqual(array2)); // True
+294               Console.WriteLine("Array1 and Array3 are equal? " + 
+array1.SequenceEqual(array3)); // False
+295           }
+296   
+297           /// <summary>
+298           /// The ElementAt, First, Last, and Single operators retrieve specific elements 
+from a collection.
+299           /// </summary>
+300           private static void ElementOperator()
+301           {
+302               string[] words = { "Hello", "World", "Linq", "CSharp" };
+303   
+304               Console.WriteLine("\nElement Operators:");
+305               Console.WriteLine("First Element: " + words.First()); // First element
+306               Console.WriteLine("Last Element: " + words.Last()); // Last element
+307               Console.WriteLine("Element at index 2: " + words.ElementAt(2)); // Element 
+at index 2
+308               Console.WriteLine("Single element check: " + new[] { "Unique" }.Single()); 
+// Works if only one element exists
+309           }
+310   
+311           /// <summary>
+312           /// The Concat and Union operators merge two collections.
+313           /// - Concat: Concatenates two sequences.
+314           /// - Union: Combines sequences and removes duplicates.
+315           /// </summary>
+316           private static void ConcatenationOperator()
+317           {
+318               string[] firstNames = { "Karthik", "Swaminathan", "Deba", "Kishan" };
+319               string[] lastNames = { "Muthukrishnan", "Santhanam", "Khadanga", "Pal" };
+320   
+321               Console.WriteLine("\nConcatenation Operator:");
+322   
+323               // Concatenation (preserves duplicates)
+324               var concatNames = firstNames.Concat(lastNames).OrderBy(s => s);
+325               Console.WriteLine("Concat:");
+326               foreach (var item in concatNames)
+327               {
+328                   Console.WriteLine(item);
+329               }
+330   
+331               // Union (removes duplicates)
+332               var unionNames = firstNames.Union(lastNames).OrderBy(s => s);
+333               Console.WriteLine("\nUnion:");
+334               foreach (var item in unionNames)
+335               {
+336                   Console.WriteLine(item);
+337               }
+338           }
+339   
+340           /// <summary>
+341           /// Aggregation Operators:
+342           /// - Sum: Calculates the total sum.
+343           /// - Min: Finds the minimum value.
+344           /// - Max: Finds the maximum value.
+345           /// - Average: Computes the average value.
+346           /// - Count: Counts the number of elements.
+347           /// </summary>
+348           private static void AggregationOperator()
+349           {
+350               int[] numbers = { 54, 76, 87, 327, 99 };
+351   
+352               Console.WriteLine("Sum = " + numbers.Sum());
+353               Console.WriteLine("Min = " + numbers.Min());
+354               Console.WriteLine("Max = " + numbers.Max());
+355               Console.WriteLine("Average = " + numbers.Average());
+356               Console.WriteLine("Count = " + numbers.Count());
+357           }
+358       }
+359   }
+360   
+
+
+
