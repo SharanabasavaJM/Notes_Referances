@@ -302,6 +302,480 @@ sql Copy code
 BEGIN TRANSACTION; -- Operations IF @@ERROR <> 0 ROLLBACK TRANSACTION; ELSE COMMIT
 TRANSACTION;
 
+---------------------------------------------------------------------------------------------------------
+SQL - Questions
+--------------------------------------------------------------------------------------------------------
+-- Condstraints
+CREATE TABLE Students(
+	ID INT PRIMARY KEY,
+	Name VARCHAR(50) NOT NUll,
+	CourseId INT FOREIGN KEY COURSED(CourseID),
+	Age INT NOT NULL CHECK(AGE>18),
+	AdmissionDate DATE DEFAULT GETDATE(),
+	CONSTARINT UC_Student UNIQUE (ID, Name)
+);
+
+-- Views - It is a virtual table which consits subset of data contained in single table or more than one table.
+CREATE VIEW [Indian Customer] AS
+SELECT * CustomerName, ContactNumber
+FROM Customers
+Where Country = 'INDIA'
+
+--Group and Having Clause
+Select COUNT(CustomerID), Country
+from Customers
+where Country = 'INDIA'
+GROUP By Country
+HAVING Count(CustomerID) > 5;
+
+--Group and Having Clause
+SELECT EmpName from Employee
+GROUP BY EmpName
+HAVING SUM(EmpSalary) < 30000;
+
+--Nested Join
+SELECT FirstName, LastName
+FROM Employees
+Where OfficeCode(Select OfficeCode
+				 From Offices
+				 Where OfficeCode = 'USA'
+				);
+
+--Inner Join
+SELECT StudentID, StudentName, CourseName
+FROM Students
+INNER JOIN Courses
+ON Student.StudentId = Courses.StudentId;
+
+--Self Join
+Select e.Name as EmpName, m.Name as ManName
+from Employees e
+Left Join Employees m
+ON m.EmpId = e.ManagerId
+
+-- Comman Table Expressions (CTE)
+With CTE_EmployeeDept AS
+(
+	select E.Name, D.DepartmentName
+	from Employee E
+	join Department D
+	ON E.DepartmentID = D.EmpId
+)
+SELECT * FROM CTE_EmployeesDept;
+
+-- Functions in SQL - Functions are predefined or user-defined routines that perform operations on data and return a result.
+CREATE FUNCTION DoSquare(@Number INT)
+RETURN INT
+AS
+BEGIN
+	RETURN @Number * @Number;
+END
+
+-- Procedures in SQL - Stored precedure are the pre compiled sql query, that are saved in the database which can be used repetative operation.
+CREATE PROCEDURE SP_Employees
+	@EmpId INT
+AS
+BEGIN
+	Select * from Employees where EmployeeId = @EmpId;
+END
+
+EXEC SP_Employees @EmpId = 95;
+
+-- Indexing - It is a technique to speed up the retrival of data from database table.
+-- Clustured Index - Sorts and stored the data rows	in table based on the index key. only one per table.
+CREATE CLUSTERED INDEX IX_Employees_Id
+ON Employees (EmployeeId)
+
+-- Non Clustured Index - 
+CREATE NONCLUSTERED INDEX IX_Employees_Name
+ON Employees (EmployeeName)
+
+-- Nth Highest salary of employee 
+-- Using Nested query 2nd highest salary
+SELECT MAX(EmpSalary) FROM Employee
+WHERE EmpSalary < (SELECT MAX(EmpSalary) FROM Employee)
+
+-- Using TOP
+SELECT TOP 1 EmpSalary FROM(
+SELECT DISTINCT TOP 3 EmpSalary FROM Employee
+ORDER BY EmpSalary DESC
+)Result
+ORDER BY EmpSalary;
+
+--Using DenseRank()
+SELECT EmpName, EmpSalary FROM (
+	SELECT EmpName, EmpSalary, DENSE_RANK() OVER(ORDER BY EmpSalary DESC) AS Ranking FROM Employee) AS A
+	WHERE Ranking = 3;
+
+
+-- If-Else condition statements
+IF EXISTS (SELECT 1 FROM Employees WHERE Salary > 100000) 
+	PRINT 'High Salary Detected'; 
+ELSE PRINT 'No High Salary Found';
+
+-- While loop
+DECLARE @number INT;
+WHILE @number = 10;
+BEGIN
+	PRINT @numeber;
+	SET @number = @numbr + 1;
+END
+
+-- Error handling 
+BEGIN TRY 
+	UPDATE Employees SET Salary = Salary + 1000 WHERE EmployeeId = 1; 
+END TRY
+BEGIN CATCH 
+	PRINT 'Error Occurred: ' + ERROR_MESSAGE();
+	--THROW 50001, 'Custom error message', 1;
+END CATCH;
+
+-- Transaction (Commit, Rollback, Savepoint)
+BEGIN TRANSACTION
+	UPDATE tblEmployees SET Salary = 1000 WHERE Id = 5;
+	IF @@ERROR <> 0
+		ROLLBACK
+	ELSE COMMIT
+
+-- Pivoting and Unpivoting Data
+-- Pivot
+SELECT Department, [2019], [2020], [2021] 
+FROM ( SELECT Department, Year, Revenue FROM DepartmentRevenue ) AS SourceTable 
+PIVOT ( SUM(Revenue) FOR Year IN ([2019], [2020], [2021]) ) AS PivotTable;
+-- Unpivot
+SELECT Department, Year, Revenue FROM DepartmentRevenue 
+UNPIVOT ( Revenue FOR Year IN ([2019], [2020], [2021]) ) AS UnpivotTable;
+
+-----------------------
+Stored Procedures
+--------------------
+Use Dummy
+
+-- A SQL Server Stored Procedure is a database object which contains pre-compiled queries (a group of T-SQL Statements). 
+-- In other words, we can say that the Stored Procedures are a block of code designed to perform a task whenever we called.
+
+-- Stored Procedure in SQL Server Without Parameter
+CREATE PROCEDURE spDisplayWelcome
+AS
+BEGIN
+	PRINT 'Welcome to Stored Procedure in SQL'
+END
+
+EXECUTE spDisplayWelcome
+
+-- Create one table
+CREATE TABLE Employee
+(
+	ID INT PRIMARY KEY,
+	NAME VARCHAR(50),
+	GENDER VARCHAR(10),
+	DOB DATETIME,
+	DeptID INT
+)
+
+INSERT INTO Employee
+(ID, NAME, GENDER, DOB, DeptID)
+VALUES
+(1, 'Sharan', 'Male', '2000-10-29 10:53:27.060', 1),
+(2, 'Basav', 'Male', '2000-02-29 10:53:27.060', 2),
+(3, 'Thanu', 'Female', '1999-07-23 10:53:27.060', 3),
+(4, 'Ganga', 'Female', '1998-02-05 10:53:27.060', 4),
+(5, 'Suraj', 'Male', '1999-12-09 10:53:27.060', 5),
+(6, 'Vaasu', 'Male', '1998-09-15 10:53:27.060', 6);
+
+-- Create a stored procedure to get the names, gender, and the dob of all employees from the table Employee table.
+
+CREATE PROCEDURE spGetEmployee
+AS
+BEGIN
+	Select NAME, GENDER, DOB FROM Employee
+END
+
+-- Alter stored procedure of the body
+Alter PROCEDURE spGetEmployee
+AS
+BEGIN
+	Select NAME, GENDER, DOB 
+	FROM Employee
+	Order By Name
+END
+
+-- To Excecute Stored procedure
+EXECUTE spGetEmployee
+
+-- To view text of Stored procedure
+sp_helptext spGetEmployee
+
+-- To Delete/Drop Stored procedure
+Drop spName
+
+
+-- Input and Output Parameters
+-- Create a Procedure
+CREATE PROCEDURE spAddTwoNumbers(@no1 INT, @no2 INT)
+AS
+BEGIN
+  DECLARE @Result INT
+  SET @Result = @no1 + @no2
+  PRINT 'RESULT IS: '+ CAST(@Result AS VARCHAR)
+END
+GO
+
+-- Calling the procedure:
+EXECUTE spAddTwoNumbers 10, 20
+
+-- OR 
+EXECUTE spAddTwoNumbers @no1=10, @no2=20
+
+-- OR calling the procedure by declaring two variables as shown below
+DECLARE @no1 INT, @no2 INT
+SET @no1 = 10
+SET @no2 = 20
+EXECUTE spAddTwoNumbers @no1, @no2
+
+
+
+
+Create PROCEDURE dbo.EmpSalary
+as
+declare @EmpName Varchar(50), @HourlySalary decimal(5,2), @dob datetime, @DailySalary smallmoney, @WeeklySalary smallmoney, @MonthlySalary smallmoney
+set @EmpName = 'Sharan'
+set @dob = '01/01/2000'
+set @HourlySalary = 29.50
+set @DailySalary = @HourlySalary * 8
+set @WeeklySalary = @DailySalary * 6
+set @MonthlySalary = @WeeklySalary * 4
+
+Select @EmpName as [Employee Name], @dob as [Data of Birth], @HourlySalary as [Houly Salary], @DailySalary as [Daily Salary], @WeeklySalary as [Weekly Salary], @MonthlySalary as [Monthly Salary]
+Return
+
+
+ALTER PROCEDURE dbo.EmpSalary
+AS
+BEGIN
+    DECLARE @EmpName VARCHAR(50), @HourlySalary decimal(5,2), @dob datetime, @DailySalary smallmoney, @WeeklySalary smallmoney, @MonthlySalary smallmoney;
+    SET @EmpName = 'Sharan';
+	set @dob = '01/01/2000'
+	set @HourlySalary = 29.50
+	set @DailySalary = @HourlySalary * 8
+	set @WeeklySalary = @DailySalary * 6
+	set @MonthlySalary = @WeeklySalary * 4
+
+    SELECT @EmpName AS [Employee Name], @dob as [Data of Birth], @HourlySalary as [Houly Salary], @DailySalary as [Daily Salary], @WeeklySalary as [Weekly Salary], @MonthlySalary as [Monthly Salary];
+END;
+
+Exec dbo.EmpSalary
+
+
+--	**********************************************************************************************
+
+--	Step 1: Write a query.
+--	For USA Customers find all the total numbers of customers and the Average score.
+Select 
+	Count(*) TotalCustomers,
+	AVG(Score) AvgScore, 
+from Sales.Customers
+where Country = 'USA'
+
+--	Step 2: Turning the query into stored procedures
+CREATE PROCEDURE spCustomerSummary as
+BEGIN
+	Select 
+		Count(*) TotalCustomers,
+		AVG(Score) AvgScore, 
+	from Sales.Customers
+	where Country = 'USA'
+END
+
+-- Step 3: Execute the stored procedure.
+Exec spCustomerSummary
+
+----------------------------------------------------------------------------------
+
+--	Parametarised stored procedures.
+CREATE PROCEDURE spCustomerSummary @Country VARCHAR(50)
+AS
+BEGIN
+	Select 
+		Count(*) TotalCustomers,
+		AVG(Score) AvgScore, 
+	from Sales.Customers
+	where Country = @Country
+END
+
+EXEC spCustomerSummary @Country = 'USA'
+
+--------------------------------------------------------------------------------
+
+--	Mutliple sql statements in single stored procedures.
+CREATE PROCEDURE spCustomerSummary @Country VARCHAR(50)
+AS
+BEGIN
+
+Select 
+	Count(*) TotalCustomers,
+	AVG(Score) AvgScore, 
+from Sales.Customers
+where Country = @Country;
+
+--	Find total number of orders and total sales.
+SELECT 
+	COUNT(OrderId) TotalOrders,
+	Sum(Sales) TotalSales
+FROM Sales.Orders o
+JOIN Sales.Customers c
+ON c.CustomerId = o.CustomerId
+WHERE c.Country = @Country;
+
+END
+
+EXEC spCustomerSummary @Country = 'USA'
+
+---------------------------------------------------------------------
+--	Variables
+
+CREATE PROCEDURE spCustomerSummary @Country VARCHAR(50)
+AS
+BEGIN
+
+DECLARE @TotalCustomers INT, @AvgScore Float;
+
+Select 
+	@TotalCustomers Count(*),
+	@AvgScore AVG(Score)
+from Sales.Customers
+where Country = @Country;
+
+PRINT 'Total customers  from' + @Country + ':' + CAST(@TotalCustomers AS VARCHAR);
+PRINT 'Average score  from' + @Country + ':' + CAST(@AvgScore AS VARCHAR);
+
+--	Find total number of orders and total sales.
+SELECT 
+	COUNT(OrderId) TotalOrders,
+	Sum(Sales) TotalSales
+FROM Sales.Orders o
+JOIN Sales.Customers c
+ON c.CustomerId = o.CustomerId
+WHERE c.Country = @Country;
+
+END
+
+EXEC spCustomerSummary @Country = 'USA'
+
+---------------------------------------------------------------------------
+--	Control flow (If Else conditions)
+
+CREATE PROCEDURE spCustomerSummary @Country VARCHAR(50)
+AS
+BEGIN
+
+DECLARE @TotalCustomers INT, @AvgScore Float;
+
+--	Preparing and cleanUp data
+--	Check if there are any NULLs in scores
+IF EXISTS(SELECT 1 FROM Sales.Customers WHERE Score IS NULL AND Country = @Country)
+BEGIN
+	PRITN('Updating NULL scores to 0');
+	UPDATE Sales.Customers
+	SET Score = 0
+	WHERE Score IS NULL AND Country = @Country;
+END
+
+ELSE
+BEGIN
+	PRINT('No NULL Scores found');
+END
+
+--	Generating Reports
+Select 
+	@TotalCustomers Count(*),
+	@AvgScore AVG(Score)
+from Sales.Customers
+where Country = @Country;
+
+PRINT 'Total customers  from' + @Country + ':' + CAST(@TotalCustomers AS VARCHAR);
+PRINT 'Average score  from' + @Country + ':' + CAST(@AvgScore AS VARCHAR);
+
+--	Find total number of orders and total sales.
+SELECT 
+	COUNT(OrderId) TotalOrders,
+	Sum(Sales) TotalSales
+FROM Sales.Orders o
+JOIN Sales.Customers c
+ON c.CustomerId = o.CustomerId
+WHERE c.Country = @Country;
+
+END
+
+EXEC spCustomerSummary @Country = 'USA'
+
+----------------------------------------------------------------------------------
+--	Error Handling.
+
+CREATE PROCEDURE spCustomerSummary @Country VARCHAR(50)
+AS
+BEGIN
+	BEGIN TRY
+		DECLARE @TotalCustomers INT, @AvgScore Float;
+
+		--	Preparing and cleanUp data
+		--	=================================================
+		--	Step 1: Check if there are any NULLs in scores
+		--	=================================================
+		IF EXISTS(SELECT 1 FROM Sales.Customers WHERE Score IS NULL AND Country = @Country)
+		BEGIN
+			PRITN('Updating NULL scores to 0');
+			UPDATE Sales.Customers
+			SET Score = 0
+			WHERE Score IS NULL AND Country = @Country;
+		END
+
+		ELSE
+		BEGIN
+			PRINT('No NULL Scores found');
+		END
+
+		--	==============================================
+		--	Step 2:	Generating Reports - (Calcualte total customer and average score for specific country)
+		--	==============================================
+		Select 
+			@TotalCustomers Count(*),
+			@AvgScore AVG(Score)
+		from Sales.Customers
+		where Country = @Country;
+
+		PRINT 'Total customers  from' + @Country + ':' + CAST(@TotalCustomers AS VARCHAR);
+		PRINT 'Average score  from' + @Country + ':' + CAST(@AvgScore AS VARCHAR);
+
+		--	=====================================================
+		--	Step 3:	Find total number of orders and total sales for specific country.
+		--	======================================================
+		SELECT 
+			COUNT(OrderId) TotalOrders,
+			Sum(Sales) TotalSales,
+			1/0		-- DevideByZeroException
+		FROM Sales.Orders o
+		JOIN Sales.Customers c
+		ON c.CustomerId = o.CustomerId
+		WHERE c.Country = @Country;
+
+	END TRY
+	BEGIN CATCH
+		--	===============================
+		--	Error Handling
+		--	===============================
+		PRINT('An error occured.');
+		PRINT('Error Message: ' + ERROR_MESSAGE());
+		PRINT('Error Number: ' + CAST(ERROR_NUMBER() AS VARCHAR(50)));
+		PRINT('Error Line: ' + CAST(ERROR_LINE() AS VARCHAR(50)));
+		PRINT('Error procedure: ' + ERROR_PROCEDURE);
+	END CATCH
+END
+GO
+
+EXEC spCustomerSummary @Country = 'USA'
+
+
 -------------------------------------------------------------------------------------------------------------
 EF Core
 -------------------------------------------------------------------------------------------------------------
